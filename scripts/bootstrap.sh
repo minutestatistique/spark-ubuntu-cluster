@@ -5,11 +5,15 @@ SPARK_LNK="https://d3kbcqa49mib13.cloudfront.net/spark-2.2.0-bin-hadoop2.7.tgz"
 SPARK_ARCH="$(echo "$SPARK_LNK" | rev | cut -d/ -f1 | rev)"
 SPARK=${SPARK_ARCH/.tgz/""}
 
+SBT_LNK="https://github.com/sbt/sbt/releases/download/v1.0.1/sbt-1.0.1.tgz"
+SBT_ARCH="$(echo "$SBT_LNK" | rev | cut -d/ -f1 | rev)"
+SBT=${SBT_ARCH/.tgz/""}
+
 # update
 sudo apt-get -y update
 
 # install vim
-sudo apt-get install -y vim htop
+sudo apt-get install -y vim htop r-base
 
 # install jdk8
 sudo apt-get install -y software-properties-common python-software-properties
@@ -17,7 +21,7 @@ sudo add-apt-repository -y ppa:openjdk-r/ppa
 sudo apt-get update
 sudo apt-get install -y openjdk-8-jdk
 
-# get spark 1.5.1 from shared directory and unzip
+# get spark and unzip
 sudo wget $SPARK_LNK
 sudo tar -xzf $SPARK_ARCH
 sudo rm -rf $SPARK_ARCH
@@ -34,6 +38,23 @@ cat >> $VAGRANT_HOME/.bashrc <<- EOF
 # spark
 export SPARK_HOME="$VAGRANT_HOME/$SPARK/"
 export PATH=\$PATH:\$SPARK_HOME/bin
+
+EOF
+
+# get sbt and unzip
+sudo wget $SBT_LNK
+sudo tar -xzf $SBT_ARCH
+sudo rm -rf $SBT_ARCH
+
+# fix permission
+sudo chown -R vagrant sbt
+sudo chgrp -R vagrant sbt
+
+cat >> $VAGRANT_HOME/.bashrc <<- EOF
+
+# sbt
+export SBT_HOME="$VAGRANT_HOME/sbt/"
+export PATH=\$PATH:\$SBT_HOME/bin
 
 EOF
 
@@ -77,3 +98,14 @@ cat /vagrant/resources/id_dsa.pub >> $VAGRANT_HOME/.ssh/authorized_keys
 
 echo "set nocompatible" > $VAGRANT_HOME/.vimrc
 sudo chown vagrant:vagrant $VAGRANT_HOME/.vimrc
+
+# install R packages
+cat > R_packages_installer.R <<- EOF
+#!/usr/bin/env Rscript
+print("installing R packages...")
+my.packages <- c("data.table")
+install.packages(my.packages, repos = "http://cran.univ-paris1.fr",
+				 dependencies = TRUE, Ncpus = $N_CPUS)
+EOF
+chmod u+x R_packages_installer.R
+sudo ./R_packages_installer.R
