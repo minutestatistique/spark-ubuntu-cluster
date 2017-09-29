@@ -1,0 +1,3 @@
+ spark-submit --class LMReg --master spark://192.168.100.101:6066 --deploy-mode cluster target/scala-2.11/linear-regression-example_2.11-0.0.1.jar
+ 
+ scp /home/vagrant/big-data/spark/linear-regression/target/scala-2.11/linear-regression-example_2.11-0.0.1.jar vagrant@192.168.100.102:/home/vagrant/big-data/spark/linear-regression/target/scala-2.11/linear-regression-example_2.11-0.0.1.jar
