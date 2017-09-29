@@ -99,13 +99,3 @@ cat /vagrant/resources/id_dsa.pub >> $VAGRANT_HOME/.ssh/authorized_keys
 echo "set nocompatible" > $VAGRANT_HOME/.vimrc
 sudo chown vagrant:vagrant $VAGRANT_HOME/.vimrc
 
-# install R packages
-cat > R_packages_installer.R <<- EOF
-#!/usr/bin/env Rscript
-print("installing R packages...")
-my.packages <- c("data.table")
-install.packages(my.packages, repos = "http://cran.univ-paris1.fr",
-				 dependencies = TRUE, Ncpus = $N_CPUS)
-EOF
-chmod u+x R_packages_installer.R
-sudo ./R_packages_installer.R
