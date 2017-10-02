@@ -4,8 +4,8 @@
 Vagrant.require_version">= 1.5.0"
 
 ipAdrPrefix = "192.168.100.10"
-memTot = 5000
-numNodes = 2
+memTot = 30000
+numNodes = 5
 memory = memTot/numNodes
 cpuCap = 100/numNodes
 

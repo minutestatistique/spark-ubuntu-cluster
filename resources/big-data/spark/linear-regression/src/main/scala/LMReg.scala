@@ -8,11 +8,11 @@ object LMReg {
 	def main(args: Array[String]) {
 		val spark = SparkSession
 		.builder()
-		.master("local[*]")
+		.master("spark://192.168.100.101:7077")
 		.appName("Linear Regression example")
 		.getOrCreate()
 
-		spark.conf.set("spark.executor.memory", "1g")
+		//spark.conf.set("spark.executor.memory", "1g")
 
 		// For implicit conversions like converting RDDs to DataFrames
 		import spark.implicits._
