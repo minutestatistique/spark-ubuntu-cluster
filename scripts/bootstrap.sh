@@ -1,17 +1,21 @@
 # script variables
 VAGRANT_HOME="/home/vagrant"
+DOWNLOAD="No"
 
-SPARK_LNK="https://d3kbcqa49mib13.cloudfront.net/spark-2.2.0-bin-hadoop2.7.tgz"
-SPARK_ARCH="$(echo "$SPARK_LNK" | rev | cut -d/ -f1 | rev)"
-SPARK=${SPARK_ARCH/.tgz/""}
+if $DOWNLOAD eq "Yes"
+then
+	SPARK_LNK="https://d3kbcqa49mib13.cloudfront.net/spark-2.2.0-bin-hadoop2.7.tgz"
+	SPARK_ARCH="$(echo "$SPARK_LNK" | rev | cut -d/ -f1 | rev)"
+	SPARK=${SPARK_ARCH/.tgz/""}
 
-SBT_LNK="https://github.com/sbt/sbt/releases/download/v1.0.1/sbt-1.0.1.tgz"
-SBT_ARCH="$(echo "$SBT_LNK" | rev | cut -d/ -f1 | rev)"
-SBT=${SBT_ARCH/.tgz/""}
+	SBT_LNK="https://github.com/sbt/sbt/releases/download/v1.0.1/sbt-1.0.1.tgz"
+	SBT_ARCH="$(echo "$SBT_LNK" | rev | cut -d/ -f1 | rev)"
+	SBT=${SBT_ARCH/.tgz/""}
 
-HADOOP_LNK="http://apache.crihan.fr/dist/hadoop/common/hadoop-2.7.4/hadoop-2.7.4.tar.gz"
-HADOOP_ARCH="$(echo "$HADOOP_LNK" | rev | cut -d/ -f1 | rev)"
-HADOOP=${HADOOP_ARCH/.tar.gz/""}
+	HADOOP_LNK="http://apache.crihan.fr/dist/hadoop/common/hadoop-2.7.4/hadoop-2.7.4.tar.gz"
+	HADOOP_ARCH="$(echo "$HADOOP_LNK" | rev | cut -d/ -f1 | rev)"
+	HADOOP=${HADOOP_ARCH/.tar.gz/""}
+fi
 
 # update
 sudo apt-get -y update
