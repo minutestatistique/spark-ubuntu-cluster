@@ -114,33 +114,48 @@ sudo chown -R vagrant:vagrant $VAGRANT_HOME/spark/conf/slaves
 #core-site
 #sudo sed 's/master/192\.168\.100\.101/g' /vagrant/resources/hadoop/core-site.xml\
 #	> $VAGRANT_HOME/hadoop/etc/hadoop/core-site.xml
-#sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/core-site.xml
-
-#mapred-site
-#sudo sed 's/master/192\.168\.100\.101/g' /vagrant/resources/hadoop/mapred-site.xml\
-#	> $VAGRANT_HOME/hadoop/etc/hadoop/mapred-site.xml
-#sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/mapred-site.xml
+sudo cp /vagrant/resources/hadoop/core-site.xml $VAGRANT_HOME/hadoop/etc/hadoop/
+sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/core-site.xml
 
 # hdfs-site
-#sudo cp /vagrant/resources/hadoop/hdfs-site.xml $VAGRANT_HOME/hadoop/etc/hadoop/
-#sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/hdfs-site.xml
+sudo cp /vagrant/resources/hadoop/hdfs-site.xml $VAGRANT_HOME/hadoop/etc/hadoop/
+sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/hdfs-site.xml
+
+#mapred-site
+sudo cp /vagrant/resources/hadoop/mapred-site.xml $VAGRANT_HOME/hadoop/etc/hadoop/
+sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/mapred-site.xml
+
+#mapred-site
+sudo cp /vagrant/resources/hadoop/yarn-site.xml $VAGRANT_HOME/hadoop/etc/hadoop/
+sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/yarn-site.xml
 
 # hadoop environment
-#sudo cp /vagrant/resources/hadoop/hadoop-env.sh $VAGRANT_HOME/hadoop/etc/hadoop/
-#sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/hadoop-env.sh
+sudo sed -i 's/\${JAVA_HOME}/\/usr\/lib\/jvm\/java-8-openjdk-amd64/g' $VAGRANT_HOME/hadoop/etc/hadoop/hadoop-env.sh
+sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/hadoop-env.sh
 
 # masters file
-#rm -rf $VAGRANT_HOME/hadoop/etc/hadoop/masters
+rm -rf $VAGRANT_HOME/hadoop/etc/hadoop/masters
 #echo "${3}1" >> $VAGRANT_HOME/hadoop/etc/hadoop/masters
-#sudo chown -R vagrant:vagrant hadoop/etc/hadoop/masters
+echo "hadoop-master" >> $VAGRANT_HOME/hadoop/etc/hadoop/masters
+sudo chown -R vagrant:vagrant hadoop/etc/hadoop/masters
 
 # slaves file
-#rm -rf $VAGRANT_HOME/hadoop/etc/hadoop/slaves
-#for i in `seq 2 $2`;
-#do
-#	echo "${3}${i}" >> $VAGRANT_HOME/hadoop/etc/hadoop/slaves
-#done
-#sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/slaves
+rm -rf $VAGRANT_HOME/hadoop/etc/hadoop/slaves
+for i in `seq 2 $2`;
+do
+	#echo "${3}${i}" >> $VAGRANT_HOME/hadoop/etc/hadoop/slaves
+	echo "hadoop-slave-$(($i-1))" >> $VAGRANT_HOME/hadoop/etc/hadoop/slaves
+done
+sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/slaves
+
+# TODO re-organize
+mkdir -p $VAGRANT_HOME/hadoop_work/hdfs/datanode $VAGRANT_HOME/hadoop_work/yarn/local\
+	$VAGRANT_HOME/hadoop_work/yarn/log\
+	$VAGRANT_HOME/hadoop_work/hdfs/namenode $VAGRANT_HOME/hadoop_work/hdfs/namesecondary
+
+# NETWORK CONF
+#-------------------------------------------------------------------------------
+
 
 # SSH CONF
 #-------------------------------------------------------------------------------
@@ -162,4 +177,23 @@ cat /vagrant/resources/ssh/id_dsa.pub >> $VAGRANT_HOME/.ssh/authorized_keys
 #-------------------------------------------------------------------------------
 echo "set nocompatible" > $VAGRANT_HOME/.vimrc
 sudo chown vagrant:vagrant $VAGRANT_HOME/.vimrc
+
+# BASH CONF
+#-------------------------------------------------------------------------------
+echo "# hadoop
+export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
+export PATH=\$PATH:\$JAVA_HOME/bin
+export HADOOP_HOME=$VAGRANT_HOME/hadoop
+export PATH=\$PATH:\$HADOOP_HOME/bin
+export PATH=\$PATH:\$HADOOP_HOME/sbin
+export HADOOP_MAPRED_HOME=\$HADOOP_HOME
+export HADOOP_COMMON_HOME=\$HADOOP_HOME
+export HADOOP_HDFS_HOME=\$HADOOP_HOME
+export YARN_HOME=\$HADOOP_HOME
+export HADOOP_COMMON_LIB_NATIVE_DIR=\$HADOOP_HOME/lib/native
+export HADOOP_OPTS=\"-Djava.library.path=\$HADOOP_HOME/lib\"
+export CLASSPATH=\$CLASSPATH:$VAGRANT_HOME/hadoop/lib/*:.
+export HADOOP_OPTS=\"\$HADOOP_OPTS -Djava.security.egd=file:/dev/../dev/urandom\"
+" >> $VAGRANT_HOME/.bashrc
+source $VAGRANT_HOME/.bashrc
 
