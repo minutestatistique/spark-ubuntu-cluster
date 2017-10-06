@@ -2,20 +2,17 @@
 VAGRANT_HOME="/home/vagrant"
 DOWNLOAD="No"
 
-if $DOWNLOAD eq "Yes"
-then
-	SPARK_LNK="https://d3kbcqa49mib13.cloudfront.net/spark-2.2.0-bin-hadoop2.7.tgz"
-	SPARK_ARCH="$(echo "$SPARK_LNK" | rev | cut -d/ -f1 | rev)"
-	SPARK=${SPARK_ARCH/.tgz/""}
+SPARK_LNK="https://d3kbcqa49mib13.cloudfront.net/spark-2.2.0-bin-hadoop2.7.tgz"
+SPARK_ARCH="$(echo "$SPARK_LNK" | rev | cut -d/ -f1 | rev)"
+SPARK=${SPARK_ARCH/.tgz/""}
 
-	SBT_LNK="https://github.com/sbt/sbt/releases/download/v1.0.1/sbt-1.0.1.tgz"
-	SBT_ARCH="$(echo "$SBT_LNK" | rev | cut -d/ -f1 | rev)"
-	SBT=${SBT_ARCH/.tgz/""}
+SBT_LNK="https://github.com/sbt/sbt/releases/download/v1.0.1/sbt-1.0.1.tgz"
+SBT_ARCH="$(echo "$SBT_LNK" | rev | cut -d/ -f1 | rev)"
+SBT=${SBT_ARCH/.tgz/""}
 
-	HADOOP_LNK="http://apache.crihan.fr/dist/hadoop/common/hadoop-2.7.4/hadoop-2.7.4.tar.gz"
-	HADOOP_ARCH="$(echo "$HADOOP_LNK" | rev | cut -d/ -f1 | rev)"
-	HADOOP=${HADOOP_ARCH/.tar.gz/""}
-fi
+HADOOP_LNK="http://apache.crihan.fr/dist/hadoop/common/hadoop-2.7.4/hadoop-2.7.4.tar.gz"
+HADOOP_ARCH="$(echo "$HADOOP_LNK" | rev | cut -d/ -f1 | rev)"
+HADOOP=${HADOOP_ARCH/.tar.gz/""}
 
 # update
 sudo apt-get -y update
@@ -32,7 +29,12 @@ sudo apt-get install -y openjdk-8-jdk
 # SPARK DOWNLOAD
 #-------------------------------------------------------------------------------
 # get spark and unzip
-sudo wget $SPARK_LNK
+if [ $DOWNLOAD = "Yes" ]
+then
+	sudo wget $SPARK_LNK
+else
+	sudo cp /vagrant/resources/$SPARK_ARCH $VAGRANT_HOME
+fi
 sudo tar -xzf $SPARK_ARCH
 sudo rm -rf $SPARK_ARCH
 sudo ln -s $SPARK spark
@@ -54,7 +56,12 @@ EOF
 # SBT DOWNLOAD
 #-------------------------------------------------------------------------------
 # get sbt and unzip
-sudo wget $SBT_LNK
+if [ $DOWNLOAD = "Yes" ]
+then
+	sudo wget $SBT_LNK
+else
+	sudo cp /vagrant/resources/$SBT_ARCH $VAGRANT_HOME
+fi
 sudo tar -xzf $SBT_ARCH
 sudo rm -rf $SBT_ARCH
 
@@ -73,7 +80,12 @@ EOF
 # HADOOP DOWNLOAD
 #-------------------------------------------------------------------------------
 # get hadoop and unzip
-sudo wget $HADOOP_LNK
+if [ $DOWNLOAD = "Yes" ]
+then
+	sudo wget $HADOOP_LNK
+else
+	sudo cp /vagrant/resources/$HADOOP_ARCH $VAGRANT_HOME
+fi
 sudo tar -xzf $HADOOP_ARCH
 sudo rm -rf $HADOOP_ARCH
 sudo ln -s $HADOOP hadoop
@@ -159,7 +171,17 @@ mkdir -p $VAGRANT_HOME/hadoop_work/hdfs/datanode $VAGRANT_HOME/hadoop_work/yarn/
 
 # NETWORK CONF
 #-------------------------------------------------------------------------------
-
+sudo mv /etc/hosts /etc/hosts_bk
+for i in `seq 1 $2`;
+do
+	if [ $i -eq "1" ]
+	then
+		echo "${3}${i} hadoop-master" > hosts
+	else
+		echo "${3}${i} hadoop-slave-$(($i-1))" >> hosts
+	fi
+done
+sudo mv hosts /etc/hosts
 
 # SSH CONF
 #-------------------------------------------------------------------------------
