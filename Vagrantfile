@@ -7,14 +7,14 @@ ipAdrPrefix = "192.168.100.10"
 memTot = 30000
 numNodes = 3
 memory = memTot/numNodes
-cpuCap = 100/numNodes
+cpuCap = 75/numNodes
 
 Vagrant.configure(2) do |config|
 	r = numNodes..1
 	(r.first).downto(r.last).each do |i|
 		config.vm.define "node-#{i}" do |node|
-			#node.vm.box = "hashicorp/precise64"
-			node.vm.box = "box/precise64.box"
+			node.vm.box = "hashicorp/precise64"
+			# node.vm.box = "box/precise64.box"
 			node.vm.provider "virtualbox" do |v|
 				v.name = "spark-node#{i}"
 				v.customize ["modifyvm", :id, "--cpuexecutioncap", cpuCap]

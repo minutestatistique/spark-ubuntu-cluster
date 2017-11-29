@@ -1,6 +1,6 @@
 # script variables
 VAGRANT_HOME="/home/vagrant"
-DOWNLOAD="No"
+DOWNLOAD="Yes"
 
 SPARK_LNK="https://d3kbcqa49mib13.cloudfront.net/spark-2.2.0-bin-hadoop2.7.tgz"
 SPARK_ARCH="$(echo "$SPARK_LNK" | rev | cut -d/ -f1 | rev)"
@@ -141,9 +141,14 @@ sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/hdfs-site.xml
 sudo cp /vagrant/resources/hadoop/mapred-site.xml $VAGRANT_HOME/hadoop/etc/hadoop/
 sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/mapred-site.xml
 
-#mapred-site
+#yarn-site
 sudo cp /vagrant/resources/hadoop/yarn-site.xml $VAGRANT_HOME/hadoop/etc/hadoop/
 sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/yarn-site.xml
+
+#yarn-default
+sudo cp /vagrant/resources/hadoop/yarn-default.xml $VAGRANT_HOME/hadoop/etc/hadoop/
+sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/yarn-default.xml
+
 
 # hadoop environment
 sudo sed -i 's/\${JAVA_HOME}/\/usr\/lib\/jvm\/java-8-openjdk-amd64/g' $VAGRANT_HOME/hadoop/etc/hadoop/hadoop-env.sh
@@ -157,11 +162,13 @@ sudo chown -R vagrant:vagrant hadoop/etc/hadoop/masters
 
 # slaves file
 rm -rf $VAGRANT_HOME/hadoop/etc/hadoop/slaves
+
+echo "hadoop-master" > $VAGRANT_HOME/hadoop/etc/hadoop/slaves
 for i in `seq 2 $2`;
 do
-	#echo "${3}${i}" >> $VAGRANT_HOME/hadoop/etc/hadoop/slaves
 	echo "hadoop-slave-$(($i-1))" >> $VAGRANT_HOME/hadoop/etc/hadoop/slaves
 done
+
 sudo chown -R vagrant:vagrant $VAGRANT_HOME/hadoop/etc/hadoop/slaves
 
 # TODO re-organize
@@ -172,16 +179,23 @@ mkdir -p $VAGRANT_HOME/hadoop_work/hdfs/datanode $VAGRANT_HOME/hadoop_work/yarn/
 # NETWORK CONF
 #-------------------------------------------------------------------------------
 sudo mv /etc/hosts /etc/hosts_bk
-for i in `seq 1 $2`;
+echo "127.0.0.1 localhost" > hosts
+echo "${3}1 hadoop-master" >> hosts
+	for i in `seq 2 $2`;
 do
-	if [ $i -eq "1" ]
-	then
-		echo "${3}${i} hadoop-master" > hosts
-	else
-		echo "${3}${i} hadoop-slave-$(($i-1))" >> hosts
-	fi
+	echo "${3}${i} hadoop-slave-$(($i-1))" >> hosts
 done
 sudo mv hosts /etc/hosts
+
+# CLEAR DATANODE AFTER FAILURE 
+#-------------------------------------------------------------------------------
+sudo cp /vagrant/resources/hadoop/clear_datanode.sh $VAGRANT_HOME/
+sudo chmod a+x vagrant:vagrant $VAGRANT_HOME/clear_datanode.sh
+
+# FORMAT NAMENODE AFTER FAILURE
+# ------------------------------------------------------------------------------
+sudo cp /vagrant/resources/hadoop/clear_namenode.sh $VAGRANT_HOME/
+sudo chmod a+x vagrant:vagrant $VAGRANT_HOME/clear_namenode.sh
 
 # SSH CONF
 #-------------------------------------------------------------------------------
@@ -216,10 +230,11 @@ export HADOOP_MAPRED_HOME=\$HADOOP_HOME
 export HADOOP_COMMON_HOME=\$HADOOP_HOME
 export HADOOP_HDFS_HOME=\$HADOOP_HOME
 export YARN_HOME=\$HADOOP_HOME
+export HADOOP_CONF_DIR=\$HADOOP_HOME/etc/hadoop
+export YARN_CONF_DIR==\$HADOOP_HOME/etc/hadoop
 export HADOOP_COMMON_LIB_NATIVE_DIR=\$HADOOP_HOME/lib/native
 export HADOOP_OPTS=\"-Djava.library.path=\$HADOOP_HOME/lib\"
 export CLASSPATH=\$CLASSPATH:$VAGRANT_HOME/hadoop/lib/*:.
 export HADOOP_OPTS=\"\$HADOOP_OPTS -Djava.security.egd=file:/dev/../dev/urandom\"
 " >> $VAGRANT_HOME/.bashrc
 source $VAGRANT_HOME/.bashrc
-
